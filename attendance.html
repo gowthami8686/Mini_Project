@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Tracker - Attendance</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <h1>Attendance Tracker</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="attendance.html">Attendance</a></li>
+        <li><a href="deviation.html">Deviation</a></li>
+        <li><a href="notifications.html">Notifications</a></li>
+      </ul>
+    </nav>
+    <style>
+      .button{
+        background-color: rgb(84, 118, 184);
+        color: black;
+        font-size: medium;
+        font-family: Arial, Helvetica, sans-serif;
+        transition: 0.5s;
+        box-shadow: 2px 2px 2px;
+        border: 0px;
+        border: none;
+        width: 100px;
+        height: 50px;
+        
+      }
+      .button:hover{
+        background-color: rgb(155, 182, 223);
+
+      }
+    </style>
+  </header>
+
+  <main>
+    <h2>Attendance Dashboards</h2>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard">
+      <!-- IT-A Section -->
+      <section id="it-a" class="card">
+        <h2>IT-A Dashboard</h2>
+        <p>Total Students: <span id="it-a-total">60</span></p>
+        <p>Present: <span id="it-a-present">55</span></p>
+        <p>Absent: <span id="it-a-absent">5</span></p>
+        <h3>Hourly Attendance Deviation</h3>
+        <canvas id="it-a-deviationChart"></canvas>
+        <h3>Notifications</h3>
+        <button class="button">Take Attendance</button>
+        <ul id="it-a-notifications-list">
+          <li>No deviations yet for IT-A!</li>
+        </ul>
+      </section>
+
+      <!-- IT-B Section -->
+      <section id="it-b" class="card">
+        <h2>IT-B Dashboard</h2>
+        <p>Total Students: <span id="it-b-total">50</span></p>
+        <p>Present: <span id="it-b-present">48</span></p>
+        <p>Absent: <span id="it-b-absent">2</span></p>
+        <h3>Hourly Attendance Deviation</h3>
+        <canvas id="it-b-deviationChart"></canvas>
+        <h3>Notifications</h3>
+        <button class="button">Take Attendance</button>
+
+        <ul id="it-b-notifications-list">
+          <li>No deviations yet for IT-B!</li>
+        </ul>
+      </section>
+
+      <!-- CSIT Section -->
+      <section id="csit" class="card">
+        <h2>CSIT Dashboard</h2>
+        <p>Total Students: <span id="csit-total">55</span></p>
+        <p>Present: <span id="csit-present">50</span></p>
+        <p>Absent: <span id="csit-absent">5</span></p>
+        <h3>Hourly Attendance Deviation</h3>
+        <canvas id="csit-deviationChart"></canvas>
+        <h3>Notifications</h3>
+        <button class="button">Take Attendance</button>
+
+        <ul id="csit-notifications-list">
+          <li>No deviations yet for CSIT!</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Attendance Tracker. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
