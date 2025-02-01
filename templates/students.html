@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
+</head>
+<body>
+    <h1>Mark Attendance</h1>
+    <div id="student-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Reg No</th>
+                    <th>Name</th>
+                    <th>Attendance</th>
+                </tr>
+            </thead>
+            <tbody id="students-list"></tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sectionId = urlParams.get("section_id");
+            const hourId = urlParams.get("hour_id");
+
+            console.log("Fetching students for section:", sectionId);
+
+            fetch(`/students/${sectionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Fetched students:", data);
+                    const tableBody = document.getElementById("students-list");
+                    tableBody.innerHTML = "";
+
+                    if (data.length === 0) {
+                        tableBody.innerHTML = "<tr><td colspan='3'>No students found.</td></tr>";
+                        return;
+                    }
+
+                    data.forEach(student => {
+                        let row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${student.reg_no}</td>
+                            <td>${student.name}</td>
+                            <td>
+                                <input type="checkbox" id="student-${student.id}" onchange="markAttendance(${student.id}, ${hourId}, this.checked)">
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error("Error fetching students:", error));
+        });
+
+        function markAttendance(studentId, hourId, status) {
+            fetch('/mark_attendance', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ student_id: studentId, hour_id: hourId, status })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error("Error marking attendance:", error));
+        }
+    </script>
+</body>
+</html>

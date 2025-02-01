@@ -1,20 +1,20 @@
+<!-- Updated index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Attendance Tracker - Home</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
   <header class="navbar">
     <h1>Attendance Tracker</h1>
     <nav>
       <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="attendance.html">Attendance</a></li>
+        <li><a href="{{ url_for('attendance') }}">Attendance</a></li>
+
         <li><a href="deviation.html">Deviation</a></li>
-        <li><a href="notifications.html">Notifications</a></li>
       </ul>
     </nav>
   </header>

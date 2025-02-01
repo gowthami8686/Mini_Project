@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Section</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
+</head>
+<body>
+    <h1>Select Your Section</h1>
+    <div id="section-container" class="section-grid"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('/sections')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById("section-container");
+                    data.forEach(section => {
+                        let card = document.createElement("div");
+                        card.className = "section-card";
+                        card.innerHTML = `<h2>${section.name}</h2>`;
+                        card.onclick = () => window.location.href = `/hours?section_id=${section.id}`;
+                        container.appendChild(card);
+                    });
+                })
+                .catch(error => console.error("Error fetching sections:", error));
+        });
+
+    </script>
+</body>
+</html>

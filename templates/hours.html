@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Hour</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
+</head>
+<body>
+    <h1>Select an Hour</h1>
+    <div id="hour-container" class="hour-grid"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sectionId = urlParams.get("section_id");
+
+            fetch(`/hours/${sectionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById("hour-container");
+                    container.innerHTML = "";
+
+                    data.forEach(hour => {
+                        let button = document.createElement("button");
+                        button.className = "hour-btn";
+                        button.innerText = hour.time_slot;
+                        button.onclick = () => window.location.href = `/students?section_id=${sectionId}&hour_id=${hour.id}`;
+
+                        container.appendChild(button);
+                    });
+                })
+                .catch(error => console.error("Error fetching hours:", error));
+        });
+    </script>
+</body>
+</html>

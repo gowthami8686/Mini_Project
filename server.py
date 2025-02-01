@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session
+from flask import Flask, request, render_template, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
@@ -16,6 +16,70 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(50), nullable=False)
 
+class Section(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+class Hour(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    time_slot = db.Column(db.String(20), nullable=False)
+    section_id = db.Column(db.Integer, db.ForeignKey('section.id'), nullable=False)
+
+class Student(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reg_no = db.Column(db.String(20), unique=True, nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    section_id = db.Column(db.Integer, db.ForeignKey('section.id'), nullable=False)
+
+class Attendance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    hour_id = db.Column(db.Integer, db.ForeignKey('hour.id'), nullable=False)
+    date = db.Column(db.Date, default=datetime.utcnow)
+    status = db.Column(db.Boolean, default=False)  # True for Present, False for Absent
+
+
+@app.route('/sections')
+def get_sections():
+    sections = Section.query.all()
+    return jsonify([{"id": sec.id, "name": sec.name} for sec in sections])
+
+@app.route('/hours/<int:section_id>')
+def get_hours(section_id):
+    hours = Hour.query.filter_by(section_id=section_id).all()
+    return jsonify([{"id": hour.id, "time_slot": hour.time_slot} for hour in hours])
+
+@app.route('/hours')
+def hours():
+    return render_template('hours.html')
+
+@app.route('/students')
+def students():
+    return render_template('students.html')
+
+
+@app.route('/students/<int:section_id>')
+def get_students(section_id):
+    students = Student.query.filter_by(section_id=section_id).all()
+    return jsonify([{"id": student.id, "reg_no": student.reg_no, "name": student.name} for student in students])
+
+@app.route('/mark_attendance', methods=['POST'])
+def mark_attendance():
+    data = request.json
+    student_id = data.get("student_id")
+    hour_id = data.get("hour_id")
+    status = data.get("status")
+
+    existing_attendance = Attendance.query.filter_by(student_id=student_id, hour_id=hour_id, date=datetime.utcnow().date()).first()
+    if existing_attendance:
+        existing_attendance.status = status
+    else:
+        new_attendance = Attendance(student_id=student_id, hour_id=hour_id, date=datetime.utcnow(), status=status)
+        db.session.add(new_attendance)
+
+    db.session.commit()
+    return jsonify({"message": "Attendance marked successfully"})
+
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -29,6 +93,10 @@ def login():
         else:
             return render_template('login.html', error="Invalid credentials")
     return render_template('login.html')
+
+@app.route('/attendance')
+def attendance():
+    return render_template('attendance.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
