@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
 </head>
 <body>
+    <h2><span id="current-date"></span></h2>
     <h1>Select Your Section</h1>
     <div id="section-container" class="section-grid"></div>
 
@@ -27,6 +28,12 @@
                 .catch(error => console.error("Error fetching sections:", error));
         });
 
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const today = new Date();
+            document.getElementById("current-date").innerText = today.toDateString();
+        });
     </script>
 </body>
 </html>

@@ -118,6 +118,66 @@ def logout():
     flash('Logged out successfully', 'success')
     return redirect(url_for('login'))
 
+@app.route('/get_attendance/<int:hour_id>')
+def get_attendance(hour_id):
+    today = datetime.utcnow().date()
+    attendance_data = Attendance.query.filter_by(hour_id=hour_id, date=today).all()
+
+    results = []
+    for record in attendance_data:
+        student = Student.query.get(record.student_id)
+        results.append({
+            "id": student.id,
+            "name": student.name,
+            "reg_no": student.reg_no,
+            "status": record.status  # True for Present, False for Absent
+        })
+
+    return jsonify(results)
+
+@app.route('/attendance_summary/<int:section_id>/<int:hour_id>')
+def attendance_summary(section_id, hour_id):
+    today = datetime.utcnow().date()
+    
+    # Fetch students belonging to the selected section
+    students = Student.query.filter_by(section_id=section_id).all()
+
+    present_students = []
+    absent_students = []
+
+    for student in students:
+        record = Attendance.query.filter_by(student_id=student.id, hour_id=hour_id, date=today).first()
+        if record and record.status:
+            present_students.append({"id": student.id, "name": student.name, "reg_no": student.reg_no})
+        else:
+            absent_students.append({"id": student.id, "name": student.name, "reg_no": student.reg_no})
+
+    return jsonify({
+        "present": present_students,
+        "absent": absent_students
+    })
+
+@app.route('/submit_attendance', methods=['POST'])
+def submit_attendance():
+    data = request.json
+    today = datetime.utcnow().date()
+
+    for record in data:
+        student_id = record.get("student_id")
+        hour_id = record.get("hour_id")
+        status = record.get("status")
+
+        existing_attendance = Attendance.query.filter_by(student_id=student_id, hour_id=hour_id, date=today).first()
+        if existing_attendance:
+            existing_attendance.status = status
+        else:
+            new_attendance = Attendance(student_id=student_id, hour_id=hour_id, date=today, status=status)
+            db.session.add(new_attendance)
+
+    db.session.commit()
+    return jsonify({"message": "Attendance submitted successfully"})
+
+
 if __name__ == '__main__':
     # Ensure the database file exists
     if not os.path.exists('attendance.db'):

@@ -1,71 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Attendance</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
-</head>
-<body>
-    <h1>Mark Attendance</h1>
-    <div id="student-container">
-        <table>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📋 Student Attendance</h1>
+        <h2>📅 <span id="current-date"></span></h2>
+      </header>
+
+      <section class="attendance-table">
+        <h3>✔ Mark Attendance</h3>
+        <div class="table-container">
+          <table>
             <thead>
-                <tr>
-                    <th>Reg No</th>
-                    <th>Name</th>
-                    <th>Attendance</th>
-                </tr>
+              <tr>
+                <th>Reg No</th>
+                <th>Name</th>
+                <th>Attendance</th>
+              </tr>
             </thead>
             <tbody id="students-list"></tbody>
-        </table>
+          </table>
+        </div>
+        <button id="submit-attendance">📤 Submit Attendance</button>
+      </section>
+
+      <section class="summary">
+        <div class="column">
+          <h3>✅ Present Students</h3>
+          <ul id="present-students"></ul>
+        </div>
+        <div class="column">
+          <h3>❌ Absent Students</h3>
+          <ul id="absent-students"></ul>
+        </div>
+      </section>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            const sectionId = urlParams.get("section_id");
-            const hourId = urlParams.get("hour_id");
+      document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sectionId = urlParams.get("section_id");
+        const hourId = urlParams.get("hour_id");
 
-            console.log("Fetching students for section:", sectionId);
+        if (!sectionId || !hourId) {
+          alert("Invalid section or hour selection!");
+          return;
+        }
 
-            fetch(`/students/${sectionId}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Fetched students:", data);
-                    const tableBody = document.getElementById("students-list");
-                    tableBody.innerHTML = "";
+        fetch(`/students/${sectionId}`)
+          .then(response => response.json())
+          .then(students => {
+            fetch(`/get_attendance/${hourId}`)
+              .then(response => response.json())
+              .then(attendance => {
+                const tableBody = document.getElementById("students-list");
+                tableBody.innerHTML = "";
 
-                    if (data.length === 0) {
-                        tableBody.innerHTML = "<tr><td colspan='3'>No students found.</td></tr>";
-                        return;
-                    }
+                const attendanceMap = {};
+                attendance.forEach(record => {
+                  attendanceMap[record.id] = record.status;
+                });
 
-                    data.forEach(student => {
-                        let row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td>${student.reg_no}</td>
-                            <td>${student.name}</td>
-                            <td>
-                                <input type="checkbox" id="student-${student.id}" onchange="markAttendance(${student.id}, ${hourId}, this.checked)">
-                            </td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                })
-                .catch(error => console.error("Error fetching students:", error));
+                students.forEach(student => {
+                  let isChecked = attendanceMap[student.id] ? "checked" : "";
+                  let row = document.createElement("tr");
+                  row.innerHTML = `
+                    <td>${student.reg_no}</td>
+                    <td>${student.name}</td>
+                    <td>
+                      <input type="checkbox" class="attendance-checkbox" data-student-id="${student.id}" ${isChecked}>
+                    </td>
+                  `;
+                  tableBody.appendChild(row);
+                });
+
+                updateAttendanceSummary(sectionId, hourId);
+              });
+          })
+          .catch(error => console.error("Error fetching students:", error));
+
+        document.getElementById("submit-attendance").addEventListener("click", function () {
+          submitAttendance(sectionId, hourId);
+        });
+      });
+
+      function submitAttendance(sectionId, hourId) {
+        const checkboxes = document.querySelectorAll(".attendance-checkbox");
+        let attendanceData = [];
+
+        checkboxes.forEach(checkbox => {
+          let studentId = checkbox.getAttribute("data-student-id");
+          let status = checkbox.checked;
+          attendanceData.push({ student_id: parseInt(studentId), hour_id: parseInt(hourId), status });
         });
 
-        function markAttendance(studentId, hourId, status) {
-            fetch('/mark_attendance', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ student_id: studentId, hour_id: hourId, status })
-            })
-            .then(response => response.json())
-            .then(data => alert(data.message))
-            .catch(error => console.error("Error marking attendance:", error));
-        }
+        fetch("/submit_attendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(attendanceData),
+        })
+          .then(response => response.json())
+          .then(data => {
+            alert(data.message);
+            window.location.reload();
+          })
+          .catch(error => console.error("Error submitting attendance:", error));
+      }
+
+      function updateAttendanceSummary(sectionId, hourId) {
+        fetch(`/attendance_summary/${sectionId}/${hourId}`)
+          .then(response => response.json())
+          .then(data => {
+            const presentList = document.getElementById("present-students");
+            const absentList = document.getElementById("absent-students");
+
+            presentList.innerHTML = "";
+            absentList.innerHTML = "";
+
+            data.present.forEach(student => {
+              let li = document.createElement("li");
+              li.textContent = `${student.reg_no} - ${student.name}`;
+              presentList.appendChild(li);
+            });
+
+            data.absent.forEach(student => {
+              let li = document.createElement("li");
+              li.textContent = `${student.reg_no} - ${student.name}`;
+              absentList.appendChild(li);
+            });
+          })
+          .catch(error => console.error("Error fetching attendance summary:", error));
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date();
+        document.getElementById("current-date").innerText = today.toDateString();
+      });
     </script>
-</body>
+  </body>
 </html>
