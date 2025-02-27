@@ -2,6 +2,8 @@ from flask import Flask, request, render_template, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
+from fpdf import FPDF
+from flask import send_file
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -176,6 +178,69 @@ def submit_attendance():
 
     db.session.commit()
     return jsonify({"message": "Attendance submitted successfully"})
+
+@app.route('/view_stats')
+def view_stats():
+    return render_template('view_stats.html')
+
+
+@app.route('/generate_report/<int:section_id>/<string:date>')
+def generate_report(section_id, date):
+    # Fetch section name
+    section = db.session.get(Section, section_id)
+    section_name = section.name if section else f"Section {section_id}"  # Fallback in case section is not found
+
+    # Fetch attendance data grouped by hours
+    hours = Hour.query.filter_by(section_id=section_id).all()
+    
+    # Create PDF
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", style='B', size=16)
+    pdf.cell(200, 10, f"Attendance Report - {section_name} - {date}", ln=True, align='C')
+    pdf.ln(10)
+
+    pdf.set_font("Arial", size=12)
+
+    for hour in hours:
+        # Title for each hour
+        pdf.set_font("Arial", style='B', size=14)
+        pdf.cell(200, 10, f"Hour: {hour.time_slot}", ln=True, align='L')
+        pdf.ln(5)  # Spacing before the table
+
+        # Table Header
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.cell(50, 10, "Reg No", border=1, align='C')
+        pdf.cell(80, 10, "Name", border=1, align='C')
+        pdf.cell(40, 10, "Status", border=1, align='C')
+        pdf.ln()  # Move to the next line
+        
+        # Fetch attendance records for this hour
+        attendance_records = Attendance.query.filter_by(hour_id=hour.id, date=date).all()
+        
+        # Table Data
+        pdf.set_font("Arial", size=12)
+        for record in attendance_records:
+            student = db.session.get(Student, record.student_id)
+            status = "Present" if record.status else "Absent"
+            pdf.cell(50, 10, student.reg_no, border=1, align='C')
+            pdf.cell(80, 10, student.name, border=1, align='C')
+            pdf.cell(40, 10, status, border=1, align='C')
+            pdf.ln()  # Move to the next row
+        
+        pdf.ln(10)  # Add more spacing before the next hour table
+
+    # Save PDF in static directory
+    report_path = f"static/reports/attendance_report_{section_id}_{date}.pdf"
+    os.makedirs("static/reports", exist_ok=True)  # Ensure directory exists
+    pdf.output(report_path)
+
+    return send_file(report_path, as_attachment=True)
+
+
+
+
 
 
 if __name__ == '__main__':

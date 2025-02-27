@@ -14,7 +14,7 @@
     <nav>
       <ul>
         <li><a href="{{ url_for('attendance') }}">📝 Take Attendance</a></li>
-        <li><a href="deviation.html">📊 View Stats</a></li>
+        <li><a href="{{ url_for('view_stats') }}">📊 View Stats</a></li>
       </ul>
     </nav>
   </header>
@@ -26,7 +26,8 @@
       <p>Simple, Fast, and Efficient Attendance Tracking System.</p>
       <div class="buttons">
         <a href="{{ url_for('attendance') }}" class="cta-button">Take Attendance</a>
-        <a href="deviation.html" class="cta-button secondary">View Stats</a>
+        <a href="{{ url_for('view_stats') }}" class="cta-button secondary">View Stats</a>
+
       </div>
     </section>
   </main>
