@@ -97,7 +97,8 @@
         checkboxes.forEach(checkbox => {
           let studentId = checkbox.getAttribute("data-student-id");
           let status = checkbox.checked;
-          attendanceData.push({ student_id: parseInt(studentId), hour_id: parseInt(hourId), status });
+          //attendanceData.push({ student_id: parseInt(studentId), hour_id: parseInt(hourId), status });
+          attendanceData.push({ student_id: parseInt(studentId), hour_id: parseInt(hourId), section_id: parseInt(sectionId), status });
         });
 
         fetch("/submit_attendance", {

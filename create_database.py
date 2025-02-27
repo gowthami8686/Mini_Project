@@ -26,10 +26,18 @@ with app.app_context():
     # Add students with correct registration numbers and names
     if not Student.query.first():
         student_data = [
-            {"reg_no": "22331A1201", "name": "Ramesh", "section": "IT-A"},
-            {"reg_no": "22331A1202", "name": "Suresh", "section": "IT-A"},
-            {"reg_no": "22331A1203", "name": "Mahesh", "section": "IT-B"},
-            {"reg_no": "22331A1204", "name": "Rajesh", "section": "IT-B"},
+            {"reg_no": "22331A1201", "name": "Aditya", "section": "IT-A"},
+            {"reg_no": "22331A1202", "name": "Aravind", "section": "IT-A"},
+            {"reg_no": "22331A1203", "name": "Vamsi", "section": "IT-A"},
+            {"reg_no": "22331A1204", "name": "Mohan", "section": "IT-A"},
+            {"reg_no": "22331A1205", "name": "Harika", "section": "IT-A"},
+
+            {"reg_no": "22331A1267", "name": "kavya", "section": "IT-B"},
+            {"reg_no": "22331A1268", "name": "Bala Aditya", "section": "IT-B"},
+            {"reg_no": "22331A1269", "name": "Praveenya", "section": "IT-B"},
+            {"reg_no": "22331A1270", "name": "Yuva Priya", "section": "IT-B"},
+            {"reg_no": "22331A1271", "name": "Sampath", "section": "IT-B"},
+
         ]
         
         for student in student_data:
